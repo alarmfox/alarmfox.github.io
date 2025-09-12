@@ -38,12 +38,6 @@ jobs:
         # build inside the repo root; if your site is in a subfolder, `working-directory: <folder>`
         run: hugo --minify
 
-      - name: Copy CNAME (if you use a custom domain)
-        if: ${{ -f 'CNAME' }}
-        run: |
-          mkdir -p public
-          cp CNAME public/CNAME
-
       - name: Upload Pages artifact
         id: upload-pages
         uses: actions/upload-pages-artifact@v3
