@@ -4,26 +4,29 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read        # checkout source
+  pages: write          # allow Pages deployments
+  id-token: write       # required by deploy-pages action
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
-    # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-    # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-    concurrency:
-      group: "pages"
-      cancel-in-progress: false
+    outputs:
+      artifact-id: ${{ steps.upload-pages.outputs.artifact_id }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           submodules: true
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
@@ -32,11 +35,28 @@ jobs:
           extended: true
 
       - name: Build Hugo site
+        # build inside the repo root; if your site is in a subfolder, `working-directory: <folder>`
         run: hugo --minify
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Copy CNAME (if you use a custom domain)
+        if: ${{ -f 'CNAME' }}
+        run: |
+          mkdir -p public
+          cp CNAME public/CNAME
+
+      - name: Upload Pages artifact
+        id: upload-pages
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          cname: giuseppe.capass.org
+          path: ./public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        #with:
+          # default behavior uses the artifact created by upload-pages-artifact in the build job
+          # no inputs required for the common case
