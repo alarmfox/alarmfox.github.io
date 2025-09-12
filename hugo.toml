@@ -1,4 +1,4 @@
-baseURL = 'localhost'
+baseURL = 'https://alarmfox.github.io'
 languageCode = 'en-us'
 title = 'Alarmfox'
 
