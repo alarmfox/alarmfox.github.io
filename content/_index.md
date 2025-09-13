@@ -17,7 +17,7 @@ There is not a specific target for this website.
 Sometimes, one just needs a place to share thoughts and put ideas together. 
 
 If you are looking for a resume/CV (either you are a recruiter or ~what are you doing with your life?~),
-you can get one [here](https://github.com/alarmfox/curriculum-vitae/releases/tag/v1.5.0).
+you can get one [here](https://github.com/alarmfox/curriculum-vitae/releases/latest).
 
 ## Contacts
 If you want to reach out write an email to capassog97@gmail.com.
