@@ -26,7 +26,7 @@ The TSM-driver is part of the firmware and runs at the highest privilege level.
 
 Every interaction between the untrusted world and the TSM has to be validated by the firmware and 
 this happens through context switches using TEECALL/TEERET. TEECALL/TEERET are just a name to indicate
-the ECALL instruction which stands for (_environment call_) and acts as a synchronous trap for the user
+the ECALL instruction which stands for _environment call_ and acts as a synchronous trap for the user
 creating it. The idea is: the Host OS issues ECALL towards the TSM which performs operations and responds
 back. Every ECALL has a context switch:
 
