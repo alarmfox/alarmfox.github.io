@@ -139,10 +139,10 @@ def read_mem(addr: int, size: int) -> bytes:
     return inf.read_memory(addr, size).tobytes()
 ```
 
-A breakpoint can be used by creating a class extending the `gdb.Breakpoint` base class and providing
-a `stop()` method which will be executed when the breakpoint will be triggered (**before** running the
-program). In the example below, `PreBP` sets up the memory and registers before an ECALL and snapshots
-the state allowing the `PostBP` to read input arguments and perform asserts.
+A breakpoint can be used by creating a class extending `gdb.Breakpoint` and providing a `stop()`
+method which will be executed when the breakpoint will be triggered (**before** running the program).
+In the example below, `PreBP` sets up the memory and registers before an ECALL and snapshots the 
+state allowing the `PostBP` to read input arguments and perform asserts.
 
 ```py
 class PreBP(gdb.Breakpoint):
