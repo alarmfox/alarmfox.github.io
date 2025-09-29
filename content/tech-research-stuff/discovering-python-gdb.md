@@ -96,8 +96,8 @@ end
 ```
 
 So, I started tweaking creating a bunch of macros/commands/function (I still don't know the difference in GDB),
-but the problem persisted: I needed an "extra test program", modify it according to my testing, find a way to load it
-(my firmware has a small ELF. But global variables are a pain), it would need to be a "bare metal program",
+but the problem persisted: I needed an "extra test program", modify it according to my test case, find a way to load it
+(my firmware has a small ELF loader. But global variables and relocation are a pain), it would need to be a "bare metal program",
 so **NO**.
 
 In the `Embedded Systems` I took in University, the Professor mentioned about Python bindings for GDB.
