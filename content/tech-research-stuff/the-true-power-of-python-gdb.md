@@ -804,4 +804,4 @@ pre-mature optimizations!
 
 [2] RISC-V: https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
 
-[3] GDB Breakpoints in Python: https://sourceware.org/gdb/current/onlinedocs/gdb.html/Python.html#Python
+[3] Python-GDB API documentation: https://sourceware.org/gdb/current/onlinedocs/gdb.html/Python.html#Python
