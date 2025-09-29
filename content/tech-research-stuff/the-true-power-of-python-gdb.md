@@ -20,7 +20,7 @@ are proposing _hardware-supported_ **Trusted Execution Environment (TEE)** (whic
 say "very strong isolation including cryptography in-memory and anti-tamper supported by 
 attestation services").
 Recent trends (like Intel TDX, ARM CCA, AMD SEV) propose the creation of Virtual Machine based TEE. 
-So we are not just isolating processes, but entire operating systems. RISC-V proposed the CoVE
+So we are not just isolating processes, but entire operating systems. RISC-V proposed CoVE
 (Confidential Virtual Extension) and so here I am trying to implementing it.
 
 CoVE introduces Trusted Virtual Machine (TVM), the TSM (which is something like a "trusted-hypervisor";
