@@ -122,7 +122,7 @@ Let's write them as needed.
 _inferiors_ (software threads mapping QEMU hardware threads), PLIC, CLIC etc. ~Sounds like the
 classic "future me problem"~.
 
-The API is really simple [3]: one can read/write from registers and memory. The script is sourced in 
+The API is really simple [3](#references): one can read/write from registers and memory. The script is sourced in
 the current GDB process with something like `source script.py`. For example, I setup some utility
 function to interact with memory and registers:
 
@@ -144,7 +144,7 @@ def read_mem(addr: int, size: int) -> bytes:
 
 A breakpoint can be used by creating a class extending `gdb.Breakpoint` and providing a `stop()`
 method which will be executed when the breakpoint will be triggered (**before** running the actual instruction).
-In the example below, `PreBP` sets up the memory and registers before an ECALL and snapshots the 
+In the example below, `PreBP` sets up the memory and registers before an ECALL and snapshots the
 state allowing the `PostBP` to read input arguments and perform asserts.
 
 ```py
@@ -270,7 +270,7 @@ def run() -> None:
 
 For each step, we will automatically generate the "program": an ECALL and a NOP. But what are
 "ECALL" and "NOP"? They are numbers (RISC-V is a little endian architecture) and their OPCODE are
-stated in the specification (I used this small reference I found online [2]. Also, I am using the
+stated in the specification (I used this small reference I found online [2](#references). Also, I am using the
 _compressed_ instructions). The `runner.add_step()` just appends things to a list.
 
 The `runner.install_breakpoints()` function loops through the steps and for each one writes an
