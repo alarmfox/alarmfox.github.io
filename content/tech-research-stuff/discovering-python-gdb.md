@@ -309,7 +309,7 @@ def assert_get_tsm_info(prev: Optional[Dict], curr: Dict) -> None:
 ## Preparing and examining processor and memory state using Breakpoints
 The ECALL setup and test happens thanks to the breakpoints. According to this documentation [3], we
 need to create a class extending `gdb.Breakpoint` and provide a `stop()` method which is executed
-**before** the program to execute the instruction. So I have 2 breakpoints:
+**before** the program executes the instruction. So I have 2 breakpoints:
 
 - `PreBP`: to setup ECALL
 - `PostBP`: to test the result (on the NOP instruction)
