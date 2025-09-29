@@ -15,7 +15,7 @@ readingTime = true
 Currently, my main research focus is on writing a RISC-V CoVE [1] compliant firmware. I will not go in
 detail here, but I will just introduce the topic. Major CPU manufacturers (Intel, ARM, AMD, NVIDIA, ecc)
 are proposing _hardware-supported_ **Trusted Execution Environment (TEE)** (which is just a fancy way to say "very strong
-isolation including cryptography in-memory and anti-tamper supported by the remote services").
+isolation including cryptography in-memory and anti-tamper supported by attestation services").
 Recent trends (like Intel TDX, ARM CCA, AMD SEV) propose the creation of Virtual Machine based TEE. 
 So we are not ust isolating processes, but entire operating systems. RISC-V proposed the CoVE
 (Confidential Virtual Extension) and so here I am trying to implementing it.
@@ -43,7 +43,7 @@ even harder. Combine these two with cryptography and security and soon, you will
 How do we create a TVM according to CoVE? We need to create at least **12** (lol!) TEECALL/TEERET.
 All these calls make sense, thus we need to:
 
-- check if the TSM is ready and what are it's capabilities.
+- check if the TSM is ready and what are its capabilities.
 - donate some memory to make it become _confidential_ memory
 - create the TVM: specify the *Guest Page Table* (GPT) address
 - create memory regions: the TVM will see this as Guest Physical Address (GPA);
