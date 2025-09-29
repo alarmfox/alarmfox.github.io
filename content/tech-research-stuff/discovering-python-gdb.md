@@ -56,8 +56,8 @@ and create entries into the GPT
 My setup is QEMU + GDB.
 
 If I wanted to be realistic about this, I would need a CoVE aware Operating System or an hypervisor which
-issues consistently TEECALL and TEERET. In Linux, the support is early and I don't know any system that performs
-the kind of service (booting a kernel to make a simple test does not seem ideal).
+issues consistently TEECALL and TEERET. In Linux, the support is premature and I don't know any system that performs
+this kind of service (booting a kernel to make a simple test does not seem ideal). I need something focusing on control and speed.
 
 During the `create_tvm` implementation, it was taking **20-30 minutes** to setup a test. It was really frustrating.
 Setting up registers can be done from the GDB CLI (pretty slow), but how would I setup memory?
