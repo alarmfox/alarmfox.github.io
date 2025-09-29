@@ -4,7 +4,7 @@ author = "alarmfox"
 draft = false
 title = 'The true power of Python-GDB: automating RISC-V security firmware testing'
 keywords = ["qemu", "riscv", "gdb", "python", "firmware", "testing", "confidential-computing"]
-tags = ["gdb", "python", "firmware", "security", "testing"]
+tags = ["gdb", "python", "firmware", "riscv", "security", "testing"]
 readingTime = true
 toc = true
 +++
