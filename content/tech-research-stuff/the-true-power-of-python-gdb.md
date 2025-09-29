@@ -11,8 +11,8 @@ toc = true
 
 ## Introduction
 
-> Source code can be found [here](https://github.com/HiSA-Team/shadowfax/tree/feature/create-tvm)\
-> References are at the [bottom of the page](#references)
+> Source code can be found [here](https://github.com/HiSA-Team/shadowfax/tree/feature/create-tvm).
+> References are at the [bottom of the page](#references).
 
 Currently, my main research focus is on writing a RISC-V CoVE [1](#references) compliant firmware. I will not go in
 detail here, but I will just introduce the topic. Major CPU manufacturers (Intel, ARM, AMD, NVIDIA, ecc)
