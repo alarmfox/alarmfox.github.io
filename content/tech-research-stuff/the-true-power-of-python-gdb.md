@@ -11,9 +11,10 @@ toc = true
 
 ## Introduction
 
-> Source code can be found [here](https://github.com/HiSA-Team/shadowfax/tree/feature/create-tvm)"
+> Source code can be found [here](https://github.com/HiSA-Team/shadowfax/tree/feature/create-tvm)\
+> References are at the [bottom of the page](#references)
 
-Currently, my main research focus is on writing a RISC-V CoVE [1] compliant firmware. I will not go in
+Currently, my main research focus is on writing a RISC-V CoVE [1](#references) compliant firmware. I will not go in
 detail here, but I will just introduce the topic. Major CPU manufacturers (Intel, ARM, AMD, NVIDIA, ecc)
 are proposing _hardware-supported_ **Trusted Execution Environment (TEE)** (which is a fancy way to 
 say "very strong isolation including cryptography in-memory and anti-tamper supported by 
@@ -800,8 +801,8 @@ pre-mature optimizations!
 
 ## References
 
-[1] CoVE specification: https://github.com/riscv-non-isa/riscv-ap-tee
+[1] CoVE specification https://github.com/riscv-non-isa/riscv-ap-tee
 
-[2] RISC-V: https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
+[2] RISC-V https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
 
-[3] Python-GDB API documentation: https://sourceware.org/gdb/current/onlinedocs/gdb.html/Python.html#Python
+[3] Python-GDB API documentation https://sourceware.org/gdb/current/onlinedocs/gdb.html/Python.html#Python
