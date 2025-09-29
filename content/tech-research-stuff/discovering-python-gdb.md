@@ -109,8 +109,7 @@ Let's write them as needed.
 
 ## Synthetic approach
 So, I will use Python to write my "untrusted program in memory" using Python-GDB API
-(the API is really simple: you can read/write registers and memory. Some advanced users will claim about
-inferiors and multithread in GDB, but we don't do that here).
+(the API is really simple: you can read/write registers and memory).
 The CoVE flow will be made by steps. Each step will be a TEECALL/TEERET towards the TSM.
 
 Let's see a simple program. This program will get supervisor domains (the active TSMs, it's not
