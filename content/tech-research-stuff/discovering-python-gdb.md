@@ -248,7 +248,7 @@ def assert_get_active_domains(prev: Optional[Dict], curr: Dict) -> None:
     )
 ```
 
-A more complicated check if for the `struct TSMInfo`. The TSM will write its state into an address
+A more complicated check will happen for the `struct TSMInfo`. The TSM will write its state into an address
 provided by the Host. With "my API", this can be easily done as follows:
 
 ```py
