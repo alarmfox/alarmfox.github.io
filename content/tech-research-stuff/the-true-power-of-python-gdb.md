@@ -3,26 +3,28 @@ date = '2025-09-28T11:13:46+02:00'
 author = "alarmfox"
 draft = false
 title = 'The true power of Python-GDB: automating RISC-V security firmware testing'
-keywords = ["confidential-computing", "riscv", "gdb", "python"]
-tags = ["gdb", "python", "riscv"]
+keywords = ["qemu", "riscv", "gdb", "python", "firmware", "testing", "confidential-computing"]
+tags = ["gdb", "python", "firmware", "security", "testing"]
 readingTime = true
+toc = true
 +++
 
-# Introduction
+## Introduction
 
-> Source code: You can find all of the source code [here](https://github.com/HiSA-Team/shadowfax/tree/feature/create-tvm)"
+> Source code can be found [here](https://github.com/HiSA-Team/shadowfax/tree/feature/create-tvm)"
 
 Currently, my main research focus is on writing a RISC-V CoVE [1] compliant firmware. I will not go in
 detail here, but I will just introduce the topic. Major CPU manufacturers (Intel, ARM, AMD, NVIDIA, ecc)
-are proposing _hardware-supported_ **Trusted Execution Environment (TEE)** (which is just a fancy way to say "very strong
-isolation including cryptography in-memory and anti-tamper supported by attestation services").
+are proposing _hardware-supported_ **Trusted Execution Environment (TEE)** (which is a fancy way to 
+say "very strong isolation including cryptography in-memory and anti-tamper supported by 
+attestation services").
 Recent trends (like Intel TDX, ARM CCA, AMD SEV) propose the creation of Virtual Machine based TEE. 
-So we are not ust isolating processes, but entire operating systems. RISC-V proposed the CoVE
+So we are not just isolating processes, but entire operating systems. RISC-V proposed the CoVE
 (Confidential Virtual Extension) and so here I am trying to implementing it.
 
 CoVE introduces Trusted Virtual Machine (TVM), the TSM (which is something like a "trusted-hypervisor";
-TSM stands for TEE Security Manager) and the TSM-driver (firmware level component which manages different TSMs).
-The TSM-driver is part of the firmware and runs at the highest privilege level.
+TSM stands for TEE Security Manager) and the TSM-driver (firmware level component which manages 
+different TSMs). The TSM-driver is part of the firmware and runs at the highest privilege level.
 
 Every interaction between the untrusted world and the TSM has to be validated by the firmware and 
 this happens through context switches using TEECALL/TEERET. TEECALL/TEERET are just a name to indicate
@@ -36,7 +38,7 @@ switch to the TSM
 
 ## The mess
 
-> TLDR: writing a firmware with lots of context switches is hard. Testing each modification you do is
+> **TLDR**: writing a firmware with lots of context switches is hard. Testing each modification you do is
 even harder. Combine these two with cryptography and security and soon, you will start thinking
 "I need a way to test all of this quickly and jump right into bug/feature I am focusing on."
 
@@ -55,14 +57,17 @@ and create entries into the GPT
 
 My setup is QEMU + GDB.
 
-If I wanted to be realistic about this, I would need a CoVE aware Operating System or an hypervisor which
-issues consistently TEECALL and TEERET. In Linux, the support is premature and I don't know any system that performs
-this kind of service (booting a kernel to make a simple test does not seem ideal). I need something focusing on control and speed.
+If I wanted to be realistic about this, I would need a CoVE aware Operating System or an hypervisor
+which issues consistently `ECALL` towards the TSM. In Linux, the support is premature and
+I don't know any system that performs this kind of service (booting a kernel to make a simple test
+does not seem ideal). I need something focusing on control and speed.
 
-During the `create_tvm` implementation, it was taking **20-30 minutes** to setup a test. It was really frustrating.
-Setting up registers can be done from the GDB CLI (pretty slow), but how would I setup memory?
-Another problem: inspecting the memory and registers to understand what was the result of each operation
-is tedious. Persisting the state between ECALLs (TEECALL/TEERET are supposed to be stateless) is hard:
+During the `create_tvm` implementation, it was taking more than **20 minutes** to setup a test.
+It was really frustrating. Setting up registers can be done from the GDB CLI (pretty slow), but how
+would I setup memory?
+Also, another problem came out: how can I inspect the memory and registers to understand what was
+the result of each operation? Doing `x <memory address>` is not _fun_.
+Persisting the state between ECALLs (TEECALL/TEERET are supposed to be stateless) is also not simple:
 
 - you create a TVM, the id is returned and you have to remember it
 - you create a mapping and you have to remember it
@@ -70,8 +75,8 @@ is tedious. Persisting the state between ECALLs (TEECALL/TEERET are supposed to 
 
 When I reached the crucial point, I usually **forgot** what I was testing!
 
-# Scripting
-GDB supports scripting. I was using it to save some commands, loading an ELF, connecting to QEMU 
+## Scripting in GDB
+GDB supports scripting. I was using it to save some commands, loading an ELF, connecting to QEMU
 with something like this:
 
 ```
@@ -95,26 +100,122 @@ define qemu-reset
 end
 ```
 
-So, I started tweaking creating a bunch of macros/commands/function (I still don't know the difference in GDB),
-but the problem persisted: I needed an "extra test program", modify it according to my test case, find a way to load it
-(my firmware has a small ELF loader. But global variables and relocation are a pain), it would need to be a "bare metal program",
-so **NO**.
+So, I started tweaking creating a bunch of macros/commands/function (I still don't know the
+difference in GDB), but the problem persisted: I needed an "extra test program", modify it according
+to my test case, find a way to load it (my firmware has a small ELF loader, but global variables
+and relocations are a pain), it would need to be a "bare metal program", so **NO**. I wanted easy
+reproducible state.
 
 In the `Embedded Systems` I took in University, the Professor mentioned about Python bindings for GDB.
 So it came to my mind: what if I can specify the `create_tvm flow` as steps?
 
-For each step, I would need a function to setup (both memory and registers) and one to assert result.
-But what about the instruction? Well, instructions are just "numbers in memory" right?
+For each step, I would need a function to setup (both memory and registers) and one to assert the
+result. But what about the instruction? Well, instructions are just "numbers in memory" right?
 Let's write them as needed.
 
-## Synthetic approach
-So, I will use Python to write my "untrusted program in memory" using Python-GDB API
-(the API is really simple: you can read/write registers and memory).
+### Python-GDB API crash course
+
+> **NOTE**: we are heavily relying on the single-core assumption. Otherwise we will be talking about
+_inferiors_ (software threads mapping QEMU hardware threads), PLIC, CLIC etc. ~Sounds like the
+classic "future me problem"~.
+
+The API is really simple [3]: one can read/write from registers and memory. The script is sourced in 
+the current GDB process with something like `source script.py`. For example, I setup some utility
+function to interact with memory and registers:
+
+```py
+def read_reg(name: str) -> int:
+    """Return integer value of a register (e.g. 'a0', 'pc')."""
+    return int(gdb.parse_and_eval(f"${name}"))
+
+
+def read_regs(names: List[str]) -> Dict[str, int]:
+    return {n: read_reg(n) for n in names}
+
+
+def read_mem(addr: int, size: int) -> bytes:
+    """Read memory from selected inferior. Returns bytes."""
+    inf = gdb.selected_inferior()
+    return inf.read_memory(addr, size).tobytes()
+```
+
+A breakpoint can be used by creating a class extending the `gdb.Breakpoint` base class and providing
+a `stop()` method which will be executed when the breakpoint will be triggered (**before** running the
+program). In the example below, `PreBP` sets up the memory and registers before an ECALL and snapshots
+the state allowing the `PostBP` to read input arguments and perform asserts.
+
+```py
+class PreBP(gdb.Breakpoint):
+    """
+    Temporary breakpoint placed at the ECALL address.
+    On hit it:
+      - captures a 'prev' snapshot (regs+mem) and stores it in runner.pending_prev[step_index]
+      - runs step.setup_mem_fn() and writes step.regs
+      - installs a temporary PostBP at addr + 4 (the instruction after the ecall)
+      - returns False so the inferior continues and executes the ECALL
+    """
+
+    def __init__(self, addr: int, step_index: int, runner: "TestRunner"):
+        super().__init__(f"*0x{addr:x}", type=gdb.BP_BREAKPOINT, temporary=True)
+        self.addr = addr
+        self.step_index = step_index
+        self.runner = runner
+
+    def stop(self) -> bool:
+        # some sanity checks omitted...
+        step = self.runner.steps[self.step_index]
+
+        # Allow step to set up memory/registers before the ECALL executes
+        if step.regs:
+            for reg, val in step.regs.items():
+                gdb.execute(f"set ${reg} = {val}")
+
+        if step.setup_mem_fn is not None:
+            try:
+                step.setup_mem_fn()
+            except Exception as e:
+                print(
+                    f"  step[{self.step_index}] '{step.name}': setup_mem_fn exception: {e}"
+                )
+                # stop so the user can inspect if setup failed
+                return True
+
+        # Capture "prev" snapshot (state before ECALL executes)
+        prev_snapshot = {"regs": read_regs(self.runner.regs_to_snapshot), "mem": {}}
+        for label, (addr_reg, size) in self.runner.mem_snapshot_spec.items():
+            if isinstance(addr_reg, str):
+                addr = prev_snapshot["regs"].get(addr_reg, read_reg(addr_reg))
+            else:
+                addr = int(addr_reg)
+            try:
+                prev_snapshot["mem"][label] = read_mem(addr, size)
+            except Exception as e:
+                prev_snapshot["mem"][label] = f"<mem read failed: {e}>"
+
+        # store pending prev snapshot for this step (consumed by PostBP)
+        self.runner.pending_prev[self.step_index] = prev_snapshot
+
+        # print registers for debugging
+        gdb.execute(
+            "info registers "
+            + " ".join(self.runner.regs_to_snapshot)
+            + " pc sepc scause stval mepc mcause mtval"
+        )
+
+        # return False so the inferior continues (ECALL instruction will execute)
+        return False
+```
+
+### Synthetic approach
 The CoVE flow will be made by steps. Each step will be a TEECALL/TEERET towards the TSM.
 
 Let's see a simple program. This program will get supervisor domains (the active TSMs, it's not
 exactly like that, but this is OK for now) and will get the TSM capabilities (from the spec these are
 the preliminary steps that must be performed by an untrusted OS and happens with 2 TEECALL/TEERET):
+
+> **Backstory**: in RISC-V a0-a5 registers contain ECALL parameters. `a7` contains the _extension_ (think 
+of it like a service we are calling) we are calling and `a6` contains a _function_ id (for the specific extension).
+Additionally, CoVE says that we must encode the target TSM identifier in bits [31:26] of the `a6` register."
 
 ```py
 def run() -> None:
@@ -164,7 +265,6 @@ def run() -> None:
     print("=== Test harness ready; continue from gdb to run ===")
 ```
 
-
 For each step, we will automatically generate the "program": an ECALL and a NOP. But what are
 "ECALL" and "NOP"? They are numbers (RISC-V is a little endian architecture) and their OPCODE are
 stated in the specification (I used this small reference I found online [2]. Also, I am using the
@@ -206,31 +306,49 @@ class TestRunner:
         inf.write_memory(nop_addr, NOP_WORD)
         print(f"Wrote nop at 0x{nop_addr:x}")
 
-        PreBP(ecall_addr, i, self)
+        PreBP(ecall_addr, i, self)self.payload_address + (8 + 1) * len(self.steps)
         print(f"Installed PreBP (step {i} - {step.name}) at 0x{ecall_addr:x}")
 
         PostBP(nop_addr, i, self)
         print(f"Installed PostBP (step {i} - {step.name}) at 0x{nop_addr:x}")
 
     # write an ebreak
+    next_addr = self.payload_address + 8 * len(self.steps)
     if install_ebreak:
-        ebreak_addr = self.payload_address + 8 * len(self.steps)
+        ebreak_addr = next_addr
         inf.write_memory(ebreak_addr, EBREAK_WORD)
         print(f"Wrote ebreak instruction at 0x{ebreak_addr:x}")
+        next_addr += 4
 
     # write infinite loop to ensure the program to hang
-    loop_addr = self.payload_address + (8 + 1) * len(self.steps)
+    loop_addr = next_addr
     inf.write_memory(loop_addr, JAL_LOOP_WORD)
     print(f"Wrote loop instruction at 0x{loop_addr:x}")
 ```
 
+The "untrusted program" will look like this:
+
+```
+(gdb) x/i 0x82000000
+   0x82000000:  ecall
+(gdb)
+   0x82000004:  nop
+(gdb)
+   0x82000008:  ecall
+(gdb)
+   0x8200000c:  nop
+(gdb)
+   0x82000010:  j       0x82000010
+```
+
 The two step program shown before has no memory setup, just registers. Now, I can easily check
 for the result simply reading from the memory. The `assert_fn` signature is:
+
 ```py
 assert_fn(prev_ctx, curr_ctx)
 ```
 
-> NOTE: each ECALL returns the error (`0` for success) in `a0` register and a value in `a1`.
+> **NOTE**: each ECALL returns the error (`0` for success) in `a0` register and a value in `a1` register.
 
 For example, the `get_active_domains` returns in `a1` register the bitmask of the active supervisor domain
 id. I am expecting `0x3` (`id=0, first bit because of the untrusted domain always active` and `id=1, my TSM`).
@@ -252,7 +370,7 @@ provided by the Host. With "my API", this can be easily done as follows:
 
 ```py
 def assert_get_tsm_info(prev: Optional[Dict], curr: Dict) -> None:
-    # Example: ensure the ECALL returned successfully in a0 and left a1 = 48
+    # ensure the ECALL returned successfully in a0 and left a1 = 48 (the number of bytes written)
     regs = curr["regs"]
     a0 = regs["a0"]
     a1 = regs["a1"]
@@ -263,12 +381,12 @@ def assert_get_tsm_info(prev: Optional[Dict], curr: Dict) -> None:
     tsm_info_addr = prev["regs"]["a0"]
 
     # read TsmInfo as bytes in one shot. The TsmInfo struct is defined in "common/src/lib.rs" as follows:
-    # Due to the memory alignement (TsmState is a u32), there is an extra u32 before the capabilities
+    # Due to the memory alignement (TsmState is a u32), there is an extra u32 before the `tsm_capabilities`
     # struct TsmInfo {
     #     pub tsm_state: TsmState,
     #     pub tsm_impl_id: u32,
     #     pub tsm_version: u32,
-    #     _padding: u32: extra 32-bit because YES.
+    #     _padding: u32: extra 32-bit added by Rust because YES (alignment stuff).
     #     pub tsm_capabilities: usize,
     #     pub tvm_state_pages: usize,
     #     pub tvm_max_vcpus: usize,
@@ -305,88 +423,15 @@ def assert_get_tsm_info(prev: Optional[Dict], curr: Dict) -> None:
     )
 ```
 
-## Preparing and examining processor and memory state using Breakpoints
-The ECALL setup and test happens thanks to the breakpoints. According to this documentation [3], we
-need to create a class extending `gdb.Breakpoint` and provide a `stop()` method which is executed
-**before** the program executes the instruction. So I have 2 breakpoints:
+### Preparing and examining processor and memory state
+The API defines 2 types of breakpoints:
 
-- `PreBP`: to setup ECALL
-- `PostBP`: to test the result (on the NOP instruction)
+- `PreBP`: to setup ECALL parameters and memory
+- `PostBP`: to test the result of the previous ECALL (on the NOP instruction)
 
-The `PreBP` sets up register, runs `setp_mem_fn` and saves the context to a stack which will be the
-`prev_ctx` used by `PostBP`:
+The `PostBP` runs the assert function popping the `prev_ctx` (pushed by the `PreBP`) and using
+the `curr_ctx`.
 
-```py
-
-class PreBP(gdb.Breakpoint):
-    """
-    Temporary breakpoint placed at the ECALL address.
-    On hit it:
-      - captures a 'prev' snapshot (regs+mem) and stores it in runner.pending_prev[step_index]
-      - runs step.setup_mem_fn() and writes step.regs
-      - installs a temporary PostBP at addr + 4 (the instruction after the ecall)
-      - returns False so the inferior continues and executes the ECALL
-    """
-
-    def __init__(self, addr: int, step_index: int, runner: "TestRunner"):
-        super().__init__(f"*0x{addr:x}", type=gdb.BP_BREAKPOINT, temporary=True)
-        self.addr = addr
-        self.step_index = step_index
-        self.runner = runner
-
-    def stop(self) -> bool:
-        try:
-            pc = int(gdb.parse_and_eval("$pc"))
-        except Exception:
-            return True  # be conservative and stop if we can't read pc
-
-        if pc != self.addr:
-            return False  # not our location, let other handlers deal with it
-
-        step = self.runner.steps[self.step_index]
-
-        # Allow step to set up memory/registers before the ECALL executes
-        if step.regs:
-            for reg, val in step.regs.items():
-                gdb.execute(f"set ${reg} = {val}")
-
-        if step.setup_mem_fn is not None:
-            try:
-                step.setup_mem_fn()
-            except Exception as e:
-                print(
-                    f"  step[{self.step_index}] '{step.name}': setup_mem_fn exception: {e}"
-                )
-                # stop so the user can inspect if setup failed
-                return True
-
-        # Capture "prev" snapshot (state before ECALL executes)
-        prev_snapshot = {"regs": read_regs(self.runner.regs_to_snapshot), "mem": {}}
-        for label, (addr_reg, size) in self.runner.mem_snapshot_spec.items():
-            if isinstance(addr_reg, str):
-                addr = prev_snapshot["regs"].get(addr_reg, read_reg(addr_reg))
-            else:
-                addr = int(addr_reg)
-            try:
-                prev_snapshot["mem"][label] = read_mem(addr, size)
-            except Exception as e:
-                prev_snapshot["mem"][label] = f"<mem read failed: {e}>"
-
-        # store pending prev snapshot for this step (consumed by PostBP)
-        self.runner.pending_prev[self.step_index] = prev_snapshot
-
-        # print registers for debugging
-        gdb.execute(
-            "info registers "
-            + " ".join(self.runner.regs_to_snapshot)
-            + " pc sepc scause stval mepc mcause mtval"
-        )
-
-        # return False so the inferior continues (ECALL instruction will execute)
-        return False
-```
-
-The `PostBP` runs the assert function popping the `prev_ctx` and using the `curr_ctx`.
 ```py
 class PostBP(gdb.Breakpoint):
     """
@@ -406,14 +451,7 @@ class PostBP(gdb.Breakpoint):
         self.runner = runner
 
     def stop(self) -> bool:
-        try:
-            pc = int(gdb.parse_and_eval("$pc"))
-        except Exception:
-            return True
-
-        if pc != self.addr:
-            return False
-
+        # some sanity checks omitted
         step = self.runner.steps[self.step_index]
 
         # snapshot current regs/mem: this is the post-ecall state
@@ -450,9 +488,9 @@ class PostBP(gdb.Breakpoint):
         return True
 ```
 
-# A more complicated example
+## A more complicated example: create TVM flow
 The example presented before just discovers the TSM capabilities. The next step is to setup
-a `create_tvm` test. The API is the same, we just need to focus on the memory setup, register values and 
+a `create_tvm` test. The API is the same, we just need to focus on the memory setup, register values and
 implement the desired functionalities in the TSM (just!). The program will look like this (lots of steps!):
 
 ```py
@@ -575,60 +613,7 @@ def run() -> None:
             assert_fn=None,
         )
     )
-
-    runner.add_step(
-        Step(
-            name="create_vcpu",
-            regs={
-                "a0": payload_address + 0x1000,
-                "a1": 48,
-                "a2": 0,
-                "a3": 0,
-                "a4": 0,
-                "a5": 0,
-                "a6": (1 << 26) | (COVH_CREATE_TVM_VCPU & 0xFFFF),
-                "a7": EID_COVH_ID,
-            },
-            setup_mem_fn=None,
-            assert_fn=None,
-        )
-    )
-
-    runner.add_step(
-        Step(
-            name="finalize_tvm",
-            regs={
-                "a0": payload_address + 0x1000,
-                "a1": 48,
-                "a2": 0,
-                "a3": 0,
-                "a4": 0,
-                "a5": 0,
-                "a6": (1 << 26) | (COVH_FINALIZE_TVM & 0xFFFF),
-                "a7": EID_COVH_ID,
-            },
-            setup_mem_fn=None,
-            assert_fn=None,
-        )
-    )
-
-    runner.add_step(
-        Step(
-            name="run_tvm_vcpu",
-            regs={
-                "a0": payload_address + 0x1000,
-                "a1": 48,
-                "a2": 0,
-                "a3": 0,
-                "a4": 0,
-                "a5": 0,
-                "a6": (1 << 26) | (COVH_RUN_TVM_VCPU & 0xFFFF),
-                "a7": EID_COVH_ID,
-            },
-            setup_mem_fn=None,
-            assert_fn=None,
-        )
-    )
+    # other steps...
 
     runner.install_breakpoints()
     print("=== Test harness ready; continue from gdb to run ===")
@@ -638,7 +623,7 @@ if __name__ == "__main__":
     run()
 ```
 
-The goal is to create a simple loop jump loop process, but in reality we can have bigger memory regions
+The goal is to create a simple process, but in reality we can have bigger memory regions
 and even a "for loop" to map all the pages. This way I can assert that the GPT is fully zero after the
 `create_tvm`. The `create_tvm` accepts a pointer to a struct which contains the `page_table_address` and
 the `state_address`. The following function writes the addresses in memory at the `ŧvm_params_addr`
@@ -701,7 +686,7 @@ def assert_create_tvm(prev: Optional[Dict], curr: Dict) -> None:
     )
 ```
 
-# Running the example
+## Running a test
 Now the question is how does one run everything? If you have a firmware, your QEMU command will
 look something like this:
 
@@ -722,7 +707,7 @@ on TCP port `1234` and to stop on the first instruction. The `-bios` tells the p
 ELF. Finally, the `-monitor` tells to expose the monitor over a Unix socket (this allows to reset from
 outside).
 
-After the spawning the process, we can attach with gdb (in another terminal) and source the script:
+After spawning the process, we can attach with GDB (in another terminal) and source the script:
 
 ```sh
 gdb -x gdb_settings
@@ -733,7 +718,6 @@ This will result in some installed breakpoints and with a couple of `continue` c
 test a complex functionalities.
 
 ```
-
 === GDB Get TSM Info Program ===
 S-Mode address 0x82000000
 Wrote ecall at 0x82000000
@@ -800,8 +784,7 @@ Temporary breakpoint 5, 0x000000008200000c in ?? ()
 Mission accomplished! One could also run an entire directory of these tests resetting the CPU using 
 the `unix` monitor!
 
-
-# Conclusions
+## Conclusions
 I was feared to test new things in the firmware. Now the setup is just instant, but this unlocked
 something new that I will cover in another post: creating tools helps understanding problems.
 
@@ -815,10 +798,10 @@ I am planning to create something more clear with like a `static class` with all
 to avoid hard-coding things in the `assert` statements. For now this works fine, don't jump into
 pre-mature optimizations!
 
-# References
+## References
 
 [1] CoVE specification: https://github.com/riscv-non-isa/riscv-ap-tee
 
 [2] RISC-V: https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
 
-[3] GDB Breakpoints in Python: https://sourceware.org/gdb/current/onlinedocs/gdb.html/Breakpoints-In-Python.html#Breakpoints-In-Python
+[3] GDB Breakpoints in Python: https://sourceware.org/gdb/current/onlinedocs/gdb.html/Python.html#Python
