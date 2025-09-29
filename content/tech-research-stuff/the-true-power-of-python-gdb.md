@@ -43,17 +43,19 @@ switch to the TSM
 even harder. Combine these two with cryptography and security and soon, you will start thinking
 "I need a way to test all of this quickly and jump right into bug/feature I am focusing on."
 
-How do we create a TVM according to CoVE? We need to create at least **12** (lol!) TEECALL/TEERET.
+How do we create a TVM according to CoVE? We need to create at least **10** (lol!) TEECALL/TEERET.
 All these calls make sense, thus we need to:
 
-- check if the TSM is ready and what are its capabilities.
+- search support for confidential supervisor domain
+- check for TSM state and capabilities
 - donate some memory to make it become _confidential_ memory
 - create the TVM: specify the *Guest Page Table* (GPT) address
-- create memory regions: the TVM will see this as Guest Physical Address (GPA);
+- create memory regions: the TVM will see this as Guest Physical Address (GPA)
 - map the memory regions: once created the memory regions we need to copy TVM data in it (code, data etc.)
 and create entries into the GPT
 - measure data: calculate some hashes and stuff like that
 - create the vCPU: which just a way to say save somewhere registers of the CPU when running the TVM
+- mark the TVM as ready to run: no more modifications are allowed
 - run the vCPU: boot the processor with the TVM state (configure interrupt forwarding etc.)
 
 My setup is QEMU + GDB.
