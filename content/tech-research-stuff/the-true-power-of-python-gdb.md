@@ -217,8 +217,8 @@ exactly like that, but this is OK for now) and will get the TSM capabilities (fr
 the preliminary steps that must be performed by an untrusted OS and happens with 2 TEECALL/TEERET):
 
 > **Backstory**: in RISC-V a0-a5 registers contain ECALL parameters. `a7` contains the _extension_ (think 
-of it like a service we are calling) we are calling and `a6` contains a _function_ id (for the specific extension).
-Additionally, CoVE says that we must encode the target TSM identifier in bits [31:26] of the `a6` register."
+of it like a service we are calling) and `a6` contains a _function_ id (for the specific extension).
+Additionally, CoVE says that we must encode the target TSM identifier in bits [31:26] of the `a6` register.
 
 ```py
 def run() -> None:
