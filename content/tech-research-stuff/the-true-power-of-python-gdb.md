@@ -718,7 +718,7 @@ gdb -x gdb_settings
 ```
 
 This will result in some installed breakpoints and with a couple of `continue` commands I can easily
-test a complex functionalities.
+test a complex functionality.
 
 ```
 === GDB Get TSM Info Program ===
@@ -792,9 +792,9 @@ I was feared to test new things in the firmware. Now the setup is just instant, 
 something new that I will cover in another post: creating tools helps understanding problems.
 
 Some more use for this "tool" (just a Python API) could be to put in action some security exploitation
-scenarios by mixing steps and TEECALL/TEERET in a malicious way.
+scenarios by mixing steps in a malicious way.
 
-Another useful thing that could be made is to enable something like a `noninteractive` mode to perform
+Another useful thing that could be made is to enable something like a `non-interactive` mode to perform
 all the tests in CI.
 
 I am planning to create something more clear with like a `static class` with all the result value
