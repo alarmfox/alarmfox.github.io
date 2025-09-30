@@ -169,7 +169,7 @@ class PreBP(gdb.Breakpoint):
         step = self.runner.steps[self.step_index]
 
         # Allow step to set up memory/registers before the ECALL executes
-        if step.regs:
+        if step.regs is not None:
             for reg, val in step.regs.items():
                 gdb.execute(f"set ${reg} = {val}")
 
