@@ -142,7 +142,7 @@ def read_mem(addr: int, size: int) -> bytes:
     return inf.read_memory(addr, size).tobytes()
 ```
 
-A breakpoint can be used by creating a class extending `gdb.Breakpoint` and providing a `stop()`
+A breakpoint can be instantiated by creating a class extending `gdb.Breakpoint` and providing a `stop()`
 method which will be executed when the breakpoint will be triggered (**before** running the actual instruction).
 In the example below, `PreBP` sets up the memory and registers before an ECALL and snapshots the
 state allowing the `PostBP` to read input arguments and perform asserts.
@@ -351,7 +351,7 @@ for the result simply reading from the memory. The `assert_fn` signature is:
 assert_fn(prev_ctx, curr_ctx)
 ```
 
-> **NOTE**: each ECALL returns the error (`0` for success) in `a0` register and a value in `a1` register.
+> **NOTE**: each ECALL returns the error (`0` for success) in `a0` and a value in `a1`.
 
 For example, the `get_active_domains` returns in `a1` register the bitmask of the active supervisor domain
 id. I am expecting `0x3` (`id=0, first bit because of the untrusted domain always active` and `id=1, my TSM`).
