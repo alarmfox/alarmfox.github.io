@@ -27,10 +27,10 @@ CoVE introduces Trusted Virtual Machine (TVM), the TSM (which is something like 
 TSM stands for TEE Security Manager) and the TSM-driver (firmware level component which manages 
 different TSMs). The TSM-driver is part of the firmware and runs at the highest privilege level.
 
-Every interaction between the untrusted world and the TSM has to be validated by the firmware and 
-this happens through context switches using TEECALL/TEERET. TEECALL/TEERET are just a name to indicate
+Every interaction between the untrusted world and the TSM has to be validated by the firmware
+through context switches using TEECALL/TEERET. TEECALL/TEERET are just a name to indicate
 the ECALL instruction which stands for _environment call_ and acts as a synchronous trap for the user
-creating it. The idea is: the Host OS issues ECALL towards the TSM which performs operations and responds
+issueing it. The idea is: the Host OS issues ECALL towards the TSM which performs operations and responds
 back. Every ECALL has a context switch:
 
 * TEECALL: a context switch towards the firmware, the firmware makes checks and perform another context
@@ -109,7 +109,7 @@ to my test case, find a way to load it (my firmware has a small ELF loader, but 
 and relocations are a pain), it would need to be a "bare metal program", so **NO**. I wanted easy
 reproducible state.
 
-In the `Embedded Systems` I took in University, the Professor mentioned about Python bindings for GDB.
+In the `Embedded Systems` course I took in University, the Professor mentioned about Python bindings for GDB.
 So it came to my mind: what if I can specify the `create_tvm flow` as steps?
 
 For each step, I would need a function to setup (both memory and registers) and one to assert the
