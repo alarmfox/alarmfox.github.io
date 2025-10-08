@@ -113,7 +113,7 @@ In the `Embedded Systems` course I took in University, the Professor mentioned a
 So it came to my mind: what if I can specify the `create_tvm flow` as steps?
 
 For each step, I would need a function to setup (both memory and registers) and one to assert the
-result. But what about the instruction? Well, instructions are just "numbers in memory" right?
+result. But what about the instructions? Well, instructions are just "numbers in memory" right?
 Let's write them as needed.
 
 ### Python-GDB API crash course
@@ -210,10 +210,23 @@ class PreBP(gdb.Breakpoint):
 ```
 
 ### Synthetic approach
-The CoVE flow will be made by steps. Each step will be a TEECALL/TEERET towards the TSM.
+The CoVE flow will be made by steps. Each step will be a TEECALL/TEERET towards the TSM. The `Step`
+is represented in the following `dataclass`:
 
-Let's see a simple program. This program will get supervisor domains (the active TSMs, it's not
-exactly like that, but this is OK for now) and will get the TSM capabilities (from the spec these are
+```py
+@dataclass
+class Step:
+    name: str
+    regs: Optional[Dict[str, int]] = None
+    setup_mem_fn: Optional[Callable[[], None]] = None
+    # assert_fn(prev_ctx, curr_ctx)
+    assert_fn: Optional[Callable[[Optional[Dict[str, Any]], Dict[str, Any]], None]] = (
+        None
+    )
+```
+
+Let's see a simple program. The following code will get supervisor domains (the active TSMs, it's not
+exactly like that, but this is OK for now) and the TSM capabilities (from the spec these are
 the preliminary steps that must be performed by an untrusted OS and happens with 2 TEECALL/TEERET):
 
 > **Backstory**: in RISC-V a0-a5 registers contain ECALL parameters. `a7` contains the _extension_ (think 
@@ -354,7 +367,7 @@ assert_fn(prev_ctx, curr_ctx)
 > **NOTE**: each ECALL returns the error (`0` for success) in `a0` and a value in `a1`.
 
 For example, the `get_active_domains` returns in `a1` register the bitmask of the active supervisor domain
-id. I am expecting `0x3` (`id=0, first bit because of the untrusted domain always active` and `id=1, my TSM`).
+id. I am expecting `0x3` (`id=0`, first bit because of the untrusted domain always active and `id=1`, my TSM).
 So the check will be:
 
 ```py
@@ -627,10 +640,10 @@ if __name__ == "__main__":
 ```
 
 The goal is to create a simple process, but in reality we can have bigger memory regions
-and even a "for loop" to map all the pages. This way I can assert that the GPT is fully zero after the
-`create_tvm`. The `create_tvm` accepts a pointer to a struct which contains the `page_table_address` and
-the `state_address`. The following function writes the addresses in memory at the `ŧvm_params_addr`
-pointer.
+(even a "for loop" to map multiple/bigger regions). This way I can assert that the GPT is fully zero
+after the `create_tvm`. The `create_tvm` accepts a pointer to a struct which contains the
+`page_table_address` and the `state_address`. The following function writes the addresses in memory
+at the `ŧvm_params_addr` pointer.
 
 ```py
 def setup_create_tvm_mem() -> None:
