@@ -166,6 +166,14 @@ struct Index<'a> {
     publications: &'a [Publication],
 }
 
+#[derive(Template)]
+#[template(path = "section.html")]
+struct SectionIndexTemplate<'a> {
+    first_name: String,
+    section_name: String,
+    posts: &'a [Post],
+}
+
 fn split_front_matter(contents: &str) -> Option<(&str, &str)> {
     let rest = contents.strip_prefix("+++\n")?;
 
@@ -279,6 +287,27 @@ fn build_post(path: &Path) -> io::Result<Post> {
     })
 }
 
+fn load_section(path: &Path) -> io::Result<Vec<Post>> {
+    let mut posts = std::fs::read_dir(path)?
+        .filter_map(|entry| match entry {
+            Ok(entry) => {
+                let path = entry.path();
+
+                if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
+                    Some(build_post(&path))
+                } else {
+                    None
+                }
+            }
+            Err(error) => Some(Err(error)),
+        })
+        .collect::<Result<Vec<_>, io::Error>>()?;
+
+    posts.sort_by(|a, b| b.meta.date.cmp(&a.meta.date));
+
+    Ok(posts)
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("content directory at {}", CONTENT_DIR);
     println!("static directory at {}", STATIC_DIR);
@@ -289,21 +318,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     setup_public_directory(opath)?;
 
-    let blog_sections = [content_path.join("research"), content_path.join("thoughts")];
-    let mut posts = Vec::new();
+    let section_names = ["research", "thoughts"];
+    let mut all_posts = Vec::new();
 
-    for blog_section in blog_sections {
-        posts.extend(
-            std::fs::read_dir(blog_section)?
-                .map(|e| {
-                    let path = e?.path();
-                    build_post(&path)
-                })
-                .collect::<Result<Vec<_>, io::Error>>()?,
-        );
+    for section_name in section_names {
+        let section_content_path = content_path.join(section_name);
+        let section_output_path = opath.join(section_name);
+
+        let posts = load_section(&section_content_path)?;
+
+        std::fs::create_dir_all(&section_output_path)?;
+
+        let template = SectionIndexTemplate {
+            first_name: FIRST_NAME.to_string(),
+            section_name: section_name.to_string(),
+            posts: &posts,
+        };
+
+        let html = template.render()?;
+
+        std::fs::write(section_output_path.join("index.html"), html)?;
+
+        for post in &posts {
+            let html = post.template.render()?;
+
+            let relative = post.template.relative_path.trim_end_matches(".md");
+
+            let output_dir = opath.join(relative);
+
+            std::fs::create_dir_all(&output_dir)?;
+            std::fs::write(output_dir.join("index.html"), html)?;
+        }
+
+        all_posts.extend(posts);
     }
 
-    for post in posts.iter() {
+    for post in all_posts.iter() {
         let mut path = opath.join(&post.template.relative_path);
         path.set_extension("html");
 
@@ -317,8 +367,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
      * 2. Create description
      * 3. Render html to index.html
      */
-    posts.sort_by(|a, b| b.meta.date.cmp(&a.meta.date));
-    let latest_posts: Vec<PostSummary> = posts
+    all_posts.sort_by(|a, b| b.meta.date.cmp(&a.meta.date));
+    let latest_posts: Vec<PostSummary> = all_posts
         .iter()
         .take(20)
         .map(|p| {

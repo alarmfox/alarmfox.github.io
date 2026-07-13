@@ -124,3 +124,19 @@ footer {
 .publication-links a:hover {
     text-decoration: underline;
 }
+
+.post-list {
+    list-style: none;
+    padding: 0;
+}
+
+.post-list li {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.post-list time {
+    color: #aaa;
+}

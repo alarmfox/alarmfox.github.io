@@ -41,12 +41,7 @@
         </div>
 
         <h3 class="publication-title">
-          {% match publication.post %}
-            {% when Some with (post) %}
-              <a href="{{ post }}">{{ publication.title }}</a>
-            {% when None %}
-              {{ publication.title }}
-          {% endmatch %}
+          {{ publication.title }}
         </h3>
 
         <p class="publication-authors">

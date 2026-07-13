@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ section_name }}
+{% endblock %}
+
+{% block content %}
+<h1>{{ section_name }}</h1>
+
+<ul class="post-list">
+  {% for post in posts %}
+    <li>
+      <time datetime="{{ post.meta.date }}">
+        {{ post.meta.date.format("%Y-%m-%d") }}
+      </time>
+
+      <a href="/{{ post.template.relative_path }}">
+        {{ post.meta.title }}
+      </a>
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}
