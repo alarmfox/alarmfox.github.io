@@ -3,6 +3,7 @@ use chrono::{DateTime, FixedOffset};
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd, html};
 use serde::Deserialize;
 use std::{
+    collections::HashMap,
     io::{self, Read, Write},
     path::{Path, PathBuf},
     sync::OnceLock,
@@ -12,6 +13,7 @@ use syntect::{highlighting::ThemeSet, html::highlighted_html_for_string, parsing
 const CONTENT_DIR: &str = "content";
 const STATIC_DIR: &str = "static";
 const PUBLIC_DIR: &str = "public";
+const PUBLICATION_FILE: &str = "publications.toml";
 
 /* Personal data */
 const USERNAME: &str = "alarmfox";
@@ -28,11 +30,11 @@ This is my space where I write about my interests and thoughts which include (an
 - Real world stuff
 
 There is not a specific target for this website. Sometimes, one just needs a place to share thoughts and put ideas together.
-If you are looking for a resume/CV (either you are a recruiter or ~what are you doing with your life?~), you can get one [**here**](https://github.com/alarmfox/curriculum-vitae/releases/latest/download/main.pdf).
+If you are looking for a resume/CV (either you are a recruiter or ~what are you doing with your life?~), you can get one [here](https://github.com/alarmfox/curriculum-vitae/releases/latest/download/main.pdf).
 
 ## Site organization
 
-Although I use this site for everything (I don't like fragmentation), maybe it is a good idea to keep the [**research**](/research) stuff away from [**personal thoughts**](/thoughts).
+Although I use this site for everything (I don't like fragmentation), maybe it is a good idea to keep the [research](/research) stuff away from [personal thoughts](/thoughts).
 ";
 
 static SYNTAX_SET: OnceLock<SyntaxSet> = OnceLock::new();
@@ -117,6 +119,38 @@ impl PostSummary {
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct Publication {
+    title: String,
+    authors: Vec<String>,
+    status: String,
+
+    #[serde(rename = "abstract")]
+    abstract_text: String,
+
+    pdf: String,
+    post: Option<String>,
+    year: u32,
+}
+
+impl Publication {
+    fn authors_string(&self) -> String {
+        self.authors.join(", ")
+    }
+
+    fn short_abstract(&self) -> String {
+        const MAX_WORDS: usize = 50;
+
+        let words: Vec<&str> = self.abstract_text.split_whitespace().collect();
+
+        if words.len() <= MAX_WORDS {
+            self.abstract_text.clone()
+        } else {
+            format!("{}…", words[..MAX_WORDS].join(" "))
+        }
+    }
+}
+
 #[derive(Template)]
 #[template(path = "index.html")]
 struct Index<'a> {
@@ -128,7 +162,8 @@ struct Index<'a> {
     github: &'a str,
     codeberg: &'a str,
 
-    latest_posts: Vec<PostSummary>,
+    latest_posts: &'a [PostSummary],
+    publications: &'a [Publication],
 }
 
 fn split_front_matter(contents: &str) -> Option<(&str, &str)> {
@@ -297,6 +332,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .collect();
 
+    /* Build publication array */
+    let publications_content = std::fs::read_to_string(content_path.join(PUBLICATION_FILE))?;
+
+    let mut publications: HashMap<String, Vec<Publication>> =
+        toml::from_str(&publications_content)?;
+
+    let mut publications = publications.remove("publication").unwrap_or(Vec::new());
+
+    publications.sort_by(|a, b| b.year.cmp(&a.year));
+
+    /* Finally build index.html */
     let mut description = String::new();
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -311,7 +357,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         email: EMAILS[0],
         github: GITHUB,
         codeberg: CODEBERG,
-        latest_posts,
+        latest_posts: &latest_posts,
+        publications: &publications,
     };
 
     let html = index.render()?;

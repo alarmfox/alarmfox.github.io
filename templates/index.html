@@ -22,4 +22,52 @@
     </a>
 {% endfor %}
 </div>
+
+
+<section class="publications">
+  <h2>Publications</h2>
+
+  <div class="publication-list">
+    {% for publication in publications %}
+      <article class="publication">
+        <div class="publication-meta">
+          <span class="publication-status">
+            [{{ publication.status }}]
+          </span>
+
+          <span class="publication-year">
+            {{ publication.year }}
+          </span>
+        </div>
+
+        <h3 class="publication-title">
+          {% match publication.post %}
+            {% when Some with (post) %}
+              <a href="{{ post }}">{{ publication.title }}</a>
+            {% when None %}
+              {{ publication.title }}
+          {% endmatch %}
+        </h3>
+
+        <p class="publication-authors">
+          {{ publication.authors_string() }}
+        </p>
+
+        <p class="publication-abstract">
+          {{ publication.short_abstract() }}
+        </p>
+
+        <div class="publication-links">
+          {% match publication.post %}
+            {% when Some with (post) %}
+              <a href="{{ post }}">Research post</a>
+            {% when None %}
+          {% endmatch %}
+
+          <a href="{{ publication.pdf }}">LINK</a>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
 {% endblock %}
