@@ -208,6 +208,7 @@ fn markdown_to_html(markdown: &str) -> io::Result<String> {
 }
 
 fn build_post(path: &Path) -> io::Result<Post> {
+    println!("processing: {}", path.display());
     let mut content = String::new();
 
     let mut options = Options::empty();
@@ -247,6 +248,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("content directory at {}", CONTENT_DIR);
     println!("static directory at {}", STATIC_DIR);
     println!("public directory at {}", PUBLIC_DIR);
+
     let opath = Path::new(PUBLIC_DIR);
     let content_path = Path::new(CONTENT_DIR);
 
@@ -256,7 +258,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut posts = Vec::new();
 
     for blog_section in blog_sections {
-        println!("exploring {}", blog_section.display());
         posts.extend(
             std::fs::read_dir(blog_section)?
                 .map(|e| {
@@ -281,7 +282,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
      * 2. Create description
      * 3. Render html to index.html
      */
-
     posts.sort_by(|a, b| b.meta.date.cmp(&a.meta.date));
     let latest_posts: Vec<PostSummary> = posts
         .iter()
