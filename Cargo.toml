@@ -8,4 +8,5 @@ askama = "0.16.0"
 chrono = {  version = "0.4.45", features = ["serde"] }
 pulldown-cmark = "0.13.4"
 serde = { version = "1.0.228", features = ["derive"] }
+syntect = { version = "5.3.0", features = ["html"] }
 toml = "1.1.2"

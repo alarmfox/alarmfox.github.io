@@ -20,7 +20,7 @@ body {
 header,
 main,
 footer {
-    width: 720px;
+    margin: .25rem;
     padding-left: 2rem;
 }
 
@@ -33,9 +33,7 @@ a {
 }
 
 pre {
-    background: #111;
-    color: white;
-    padding: 1rem;
+    margin: 1em;
     overflow-x: auto;
 }
 

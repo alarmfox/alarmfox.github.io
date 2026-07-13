@@ -1,11 +1,13 @@
 use askama::Template;
 use chrono::{DateTime, FixedOffset};
-use pulldown_cmark::Options;
+use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd, html};
 use serde::Deserialize;
 use std::{
     io::{self, Read, Write},
     path::{Path, PathBuf},
+    sync::OnceLock,
 };
+use syntect::{highlighting::ThemeSet, html::highlighted_html_for_string, parsing::SyntaxSet};
 
 const CONTENT_DIR: &str = "content";
 const STATIC_DIR: &str = "static";
@@ -32,6 +34,9 @@ If you are looking for a resume/CV (either you are a recruiter or ~what are you 
 
 Although I use this site for everything (I don't like fragmentation), maybe it is a good idea to keep the [**research**](/research) stuff away from [**personal thoughts**](/thoughts).
 ";
+
+static SYNTAX_SET: OnceLock<SyntaxSet> = OnceLock::new();
+static THEME_SET: OnceLock<ThemeSet> = OnceLock::new();
 
 fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
     std::fs::create_dir_all(&dst)?;
@@ -134,9 +139,76 @@ fn split_front_matter(contents: &str) -> Option<(&str, &str)> {
     Some((front, body))
 }
 
+fn markdown_to_html(markdown: &str) -> io::Result<String> {
+    let syntax_set = SYNTAX_SET.get_or_init(SyntaxSet::load_defaults_newlines);
+
+    let theme_set = THEME_SET.get_or_init(ThemeSet::load_defaults);
+
+    let theme = &theme_set.themes["base16-ocean.dark"];
+
+    let mut options = Options::empty();
+    options.insert(Options::ENABLE_STRIKETHROUGH);
+
+    let mut parser = Parser::new_ext(markdown, options);
+    let mut events = Vec::new();
+
+    while let Some(event) = parser.next() {
+        match event {
+            Event::Start(Tag::CodeBlock(kind)) => {
+                let language = match kind {
+                    CodeBlockKind::Fenced(language) => {
+                        // Handles fences such as ```rust or ```rust linenos
+                        language.split_whitespace().next().unwrap_or("").to_owned()
+                    }
+                    CodeBlockKind::Indented => String::new(),
+                };
+
+                let mut code = String::new();
+
+                for code_event in parser.by_ref() {
+                    match code_event {
+                        Event::Text(text) | Event::Code(text) => {
+                            code.push_str(&text);
+                        }
+
+                        Event::SoftBreak | Event::HardBreak => {
+                            code.push('\n');
+                        }
+
+                        Event::End(TagEnd::CodeBlock) => {
+                            break;
+                        }
+
+                        _ => {}
+                    }
+                }
+
+                let syntax = if language.is_empty() {
+                    syntax_set.find_syntax_plain_text()
+                } else {
+                    syntax_set
+                        .find_syntax_by_token(&language)
+                        .unwrap_or_else(|| syntax_set.find_syntax_plain_text())
+                };
+
+                let highlighted = highlighted_html_for_string(&code, syntax_set, syntax, theme)
+                    .map_err(io::Error::other)?;
+
+                events.push(Event::Html(CowStr::Boxed(highlighted.into_boxed_str())));
+            }
+
+            other => events.push(other),
+        }
+    }
+
+    let mut output = String::new();
+    html::push_html(&mut output, events.into_iter());
+
+    Ok(output)
+}
+
 fn build_post(path: &Path) -> io::Result<Post> {
     let mut content = String::new();
-    let mut rendered = String::new();
 
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -149,9 +221,8 @@ fn build_post(path: &Path) -> io::Result<Post> {
     /* Header */
     let meta: PostMetadata = toml::from_str(header).expect("header error");
 
-    /* Render the markdown body */
-    let parser = pulldown_cmark::Parser::new_ext(&body, options);
-    pulldown_cmark::html::push_html(&mut rendered, parser);
+    /* Render the post header */
+    let rendered = markdown_to_html(body)?;
 
     let relative_path = PathBuf::from(path.strip_prefix(CONTENT_DIR).expect("invalid error"))
         .to_string_lossy()
