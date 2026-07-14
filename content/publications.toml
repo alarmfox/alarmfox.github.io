@@ -1,0 +1,30 @@
+[[publication]]
+title = "Shadowfax: Enforcing Confidential Virtualization via an open TEE Security Manager"
+authors = [
+    "Giuseppe Capasso",
+    "Stefano Mercogliano",
+    "Nicola d'Ambrosio",
+    "Simon Pietro Romano",
+    "Alessandro Cilardo"
+]
+status = "Preprint"
+abstract = """
+Current Trusted Execution Environment (TEE) implementations often rely on proprietary Trusted Computing Bases (TCBs), constraining their use in privacy-sensitive applications and regulatory contexts that require open-source implementations. To address this issue, we present Shadowfax, an M-mode TEE Security Manager (TSM-driver) for the open RISC-V architecture that adheres to the CoVE specification. Shadowfax partitions the platform into multiple isolated supervisor domains and enables secure inter-domain interactions through CoVE-defined primitives, thus supporting VMbased TEEs that remain agnostic to specific operating systems and hypervisors. Trusted Virtual Machines (TVMs) deployed under Shadowfax benefit from its integration with Physical Memory Protection (PMP) enforcement and Guest Page Tables (GPTs) separation to achieve two levels of isolation: (i) intra-domain isolation, which separates TVMs within the same trusted domain; and (ii) inter-domain isolation, which prevents interference across distinct trusted domains. Alongside Shadowfax, we also provide a minimal trusted hypervisor that supports bare-metal TVMs. Furthermore, our architecture integrates a secure boot and attestation pipeline based on the DICE model, enabling cryptographic verification of each execution environment from the TSM-driver to TVMs.
+"""
+pdf = "https://ssrn.com/abstract=6717198"
+year = 2026
+
+[[publication]]
+title = "A Systematic Threat Modeling Methodology for Confidential Computing Architectures: a Case Study on RISC-V CoVE"
+authors = [
+    "Giuseppe Capasso",
+    "Alessandro Cilardo",
+    "Simon Pietro Romano",
+    "Lavinia Russo",
+]
+status = "Preprint"
+abstract = """
+Confidential Computing has emerged as a critical response to heightened security and privacy demands in modern computing systems. However, the Trusted Execution Environment (TEE) ecosystem remains highly fragmented, with each vendor implementing proprietary solutions featuring distinct architectures, vulnerabilities, and threat models. This fragmentation creates a significant gap: the absence of a standardized formal Threat Model methodology for systematically analyzing the safety and security characteristics of Confidential Computing architectures. This paper addresses this critical gap by proposing a formal and systematic methodological approach that combines STPA-Sec with Attack Graph analysis. We demonstrate the effectiveness and applicability of this hybrid methodology through a comprehensive case study of Shadowfax, an open-source RISC-V CoVE-compliant TEE architecture. Our analysis not only validates the proposed threat modeling approach within the Confidential Computing domain but also verifies Shadowfax's compliance with essential security properties, establishing a foundation for standardized security assessment across diverse TEE implementations.
+"""
+pdf = "http://dx.doi.org/10.2139/ssrn.6767055"
+year = 2026
