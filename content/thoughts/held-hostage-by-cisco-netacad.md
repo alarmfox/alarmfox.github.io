@@ -14,7 +14,7 @@ I joined a Cisco Networking Academy class back in 2019 using my personal email t
 
 ## The nightmare
 
-One year later, I left the job to get my MSc, but continued working with the teaching part. As soon I left the job (beginning of 2023), the sysadmin deactivated my email, so when they proposed me to teach the course, I lost my instructor status.
+One year later, I left the job to get my MSc, but continued working with the teaching part. As soon as I left the job (beginning of 2023), the sysadmin deactivated my email, so when they proposed me to teach the course, I lost my instructor status.
 
 First fight to get previous work email back (took 1 month).
 
