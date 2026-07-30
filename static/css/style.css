@@ -33,13 +33,46 @@ a {
     color: cyan;
 }
 
-pre {
+.code-block {
+    position: relative;
     margin: 1em;
+}
+
+.code-block pre {
+    margin: 0;
     overflow-x: auto;
 }
 
 pre code {
     font-family: monospace;
+}
+
+.copy-code {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid #777;
+    border-radius: 0.25rem;
+    background: #222;
+    color: #ddd;
+    font: inherit;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+.copy-code:hover,
+.copy-code:focus-visible {
+    border-color: cyan;
+    color: cyan;
+    opacity: 1;
+}
+
+.copy-code.copy-failed {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
 }
 
 footer {
