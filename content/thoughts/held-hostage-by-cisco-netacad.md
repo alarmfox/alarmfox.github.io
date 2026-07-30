@@ -18,7 +18,7 @@ One year later, I left the job to get my MSc, but continued working with the tea
 
 First fight to get previous work email back (took 1 month).
 
-Seeing the issue, I tried to migrate that account to my personal Gmail. **Wait!** Cisco police says you cannot do that! The account is already in use! I wrote emails, talked to people in the company and all I received was "We will let you know, we have to talk to Cisco".
+Seeing the issue, I tried to migrate that account to my personal Gmail. **Wait!** Cisco police says you cannot do that! The account is already in use! I wrote emails, talked to people in the company I used to work and all I received was "We will let you know, we have to talk to Cisco".
 
 ![Email change](/static/images/held-hostage-by-cisco-netacad/email-change.png)
 

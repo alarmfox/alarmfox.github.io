@@ -27,12 +27,12 @@ const CODEBERG: &str = "https://codeberg.org/alarmfox";
 const DESCRIPTION: &str = r"
 This is my space where I write about my interests and thoughts which include (and are not limited to):
 
-- Computer Systems: I am deeply interested in high-performance systems, software security, networking and all the OS/low-level stuff.
-- Entertainment (books, videogames, music, film)
-- Real world stuff
+- computer architectures: I am deeply interested in high-performance systems, software security, networking and all the OS/low-level stuff.
+- entertainment (books, videogames, music, film)
+- real world stuff
 
 There is not a specific target for this website. Sometimes, one just needs a place to share thoughts and put ideas together.
-If you are looking for a resume/CV (either you are a recruiter or ~what are you doing with your life?~), you can get one [here](https://github.com/alarmfox/curriculum-vitae/releases/latest/download/main.pdf).
+If you are looking for a resume/CV (either you are a recruiter or ~what are you doing with your life?~), you can get one [here](https://github.com/alarmfox/curriculum-vitae/releases/latest/download/cv-capasso-giuseppe.pdf).
 
 ## Site organization
 
