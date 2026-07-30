@@ -58,15 +58,15 @@ After this pleasant experience, I went back to ChatGPT (hey I pay 23€ per mont
 
 ![Morgan 5 screen](/static/images/held-hostage-by-cisco-netacad/morgan5.png)
 
-So we are stuck in a loop. I went online and found [this from 2026](https://community.cisco.com/t5/discuss%C3%B5es-geral/cisco-account-merge/m-p/5546824/highlight/true). Wow this is just what I need. A human (maybe), answered that I need to go:
+So we are stuck in a loop. I went online and found [this from 2026](https://community.cisco.com/t5/discuss%C3%B5es-geral/cisco-account-merge/m-p/5546824/highlight/true). Wow! this is just what I need. A human (maybe), answered that I need to go:
 
-- web-help-portal
+- <span id="web-help">web-help-portal</span>
 - profile manager
 - access management
 - chat now
 - write the magic words "Request assistance with merging my Cisco accounts"
 
-Let's go! This is what I got following the procedure: a loop to the famous Cisco support at https://web-help.cisco.com!
+Let's go! This is what I got following the procedure: a loop to the famous Cisco support at https://web-help.cisco.com! So go [here](#web-help) and do all the procedure yourself!
 
 ![Cisco AI](/static/images/held-hostage-by-cisco-netacad/ciscoai.png)
 
