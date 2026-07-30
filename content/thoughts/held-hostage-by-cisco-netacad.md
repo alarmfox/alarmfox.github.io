@@ -76,6 +76,6 @@ So I am stuck with 2 accounts. Neither Cisco community/documentation stuff works
 
 Companies do not care about Q/A, customer support. Everything that has a _minus_ sign in their excel sheet has to be lowered or removed. Putting a shitty chatbot helps in firing people so they will keep doing that. This is how most companies aim to use AI: reduce costs regardless of quality. This does not simply apply to Cisco. Lots of italian companies purposely create loops avoiding always to put an human when needed, because the "real person" does not even exists anymore.
 
-I will make an attempt in December as always or when i see the _- ~13€_ bill per year to maintain an email account I cannot remove. Of course one can move to a free account but **WHY**? Why can't I just use the email that I have for a mistake I did not even do myself?
+I will make an attempt in December as always or when i see the _- ~13€_ bill per year to maintain an email account I cannot remove. Of course one can move to a free account (i did move to the free proton account btw) but **WHY**? Why can't I just use the email that I have for a mistake I did not even do myself?
 
 At least I learned DevOps so that I manage my infrastructure with secret vaults, ansible playbooks, docker, traefik reverse proxy and Cloudflare.
