@@ -14,14 +14,17 @@
   {{ description | safe }}
 </div>
 
-<h2>Latest posts</h2>
-<div>
-{% for post in latest_posts %}
+<section class="publications">
+  <h2>Latest posts</h2>
+
+  <div class="post-list">
+    {% for post in latest_posts %}
     <a href="{{ post.relative_path }}">
-        {{ post.date }} {{ post.short_title() }}
+      {{ post.date }} {{ post.short_title() }}
     </a>
-{% endfor %}
-</div>
+    {% endfor %}
+  </div>
+</section>
 
 
 <section class="publications">

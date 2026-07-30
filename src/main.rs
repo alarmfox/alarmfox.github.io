@@ -10,6 +10,8 @@ use std::{
 };
 use syntect::{highlighting::ThemeSet, html::highlighted_html_for_string, parsing::SyntaxSet};
 
+const SKIP_DRAFT: bool = true;
+
 const CONTENT_DIR: &str = "content";
 const STATIC_DIR: &str = "static";
 const PUBLIC_DIR: &str = "public";
@@ -35,6 +37,9 @@ If you are looking for a resume/CV (either you are a recruiter or ~what are you 
 ## Site organization
 
 Although I use this site for everything (I don't like fragmentation), maybe it is a good idea to keep the [research](/research) stuff away from [personal thoughts](/thoughts).
+
+> [!NOTE]
+> some personal thoughts are available both in Italian and English. The translation may happen automatically (not so often though).
 ";
 
 static SYNTAX_SET: OnceLock<SyntaxSet> = OnceLock::new();
@@ -99,6 +104,7 @@ struct PostTemplate {
 struct PostMetadata {
     title: String,
     date: DateTime<FixedOffset>,
+    draft: bool,
 }
 
 #[derive(Debug)]
@@ -187,7 +193,7 @@ fn markdown_to_html(markdown: &str) -> io::Result<String> {
 
     let theme_set = THEME_SET.get_or_init(ThemeSet::load_defaults);
 
-    let theme = &theme_set.themes["base16-ocean.dark"];
+    let theme = &theme_set.themes["base16-eighties.dark"];
 
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -276,6 +282,7 @@ fn build_post(path: &Path) -> io::Result<Post> {
         meta: PostMetadata {
             title: meta.title.clone(),
             date: meta.date,
+            draft: meta.draft,
         },
         template: PostTemplate {
             first_name: FIRST_NAME.to_string(),
@@ -309,6 +316,9 @@ fn load_section(path: &Path) -> io::Result<Vec<Post>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if SKIP_DRAFT {
+        println!("skipping drafts");
+    }
     println!("content directory at {}", CONTENT_DIR);
     println!("static directory at {}", STATIC_DIR);
     println!("public directory at {}", PUBLIC_DIR);
@@ -325,7 +335,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let section_content_path = content_path.join(section_name);
         let section_output_path = opath.join(section_name);
 
-        let posts = load_section(&section_content_path)?;
+        let mut posts = load_section(&section_content_path)?;
+
+        if SKIP_DRAFT {
+            posts.retain(|p| !p.meta.draft);
+        }
 
         std::fs::create_dir_all(&section_output_path)?;
 
