@@ -37,9 +37,11 @@ But no merge yet.
 
 But wait, now we are in the AI era everything should be simpler! Flexing my **ChatGPT Plus** (23€ per month (*sic!*)). Let's ask AI! So I opened the chat, chose *GPT-5.6 Sol (Medium)* and wrote:
 
-```text
-I have 2 cisco netacad accounts. One is capassog97@gmail.com that i used to join the Cisco Academy in 2019 and one created when i become an instructor. After i left I migrated the account to a paid inbox (i could not put the gmail because it was in use). Now i don't want to pay for the inbox anymore and I want to merge both accounts keeping all my instructor stuff and student certificate keeping all on my gmail accounts. What are the steps
-```
+> **PROMPT**> I have 2 cisco netacad accounts. One is capassog97@gmail.com that i used to join the Cisco Academy in 2019 and one created when i become an instructor.
+>
+> After i left I migrated the account to a paid inbox (i could not put the gmail because it was in use).
+>
+> Now i don't want to pay for the inbox anymore and I want to merge both accounts keeping all my instructor stuff and student certificate keeping all on my gmail accounts. What are the steps
 
 The full chat is [here](https://chatgpt.com/share/6a6b2147-f90c-83eb-b3b5-9754c84eca16)
 

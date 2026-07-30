@@ -33,6 +33,30 @@ a {
     color: cyan;
 }
 
+blockquote {
+    box-sizing: border-box;
+    max-width: 200ch;
+    margin: .5rem 1rem;
+    padding: 1.25rem 1.25rem;
+    border: 1px solid #444;
+    border-left: 0.25rem solid cyan;
+    background: #0d0d0d;
+    color: #ddd;
+}
+
+blockquote p {
+    margin: 0;
+}
+
+blockquote p + p {
+    margin-top: 0.75rem;
+}
+
+blockquote strong:first-child {
+    color: cyan;
+    letter-spacing: 0.08em;
+}
+
 .code-block {
     position: relative;
     margin: 1em;

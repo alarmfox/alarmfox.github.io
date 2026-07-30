@@ -38,8 +38,7 @@ If you are looking for a resume/CV (either you are a recruiter or ~what are you 
 
 Although I use this site for everything (I don't like fragmentation), maybe it is a good idea to keep the [research](/research) stuff away from [personal thoughts](/thoughts).
 
-> [!NOTE]
-> some personal thoughts are available both in Italian and English. The translation may happen automatically (not so often though).
+> **NOTE** some personal thoughts are available both in Italian and English. The translation may happen automatically (not so often though).
 ";
 
 static SYNTAX_SET: OnceLock<SyntaxSet> = OnceLock::new();
@@ -136,6 +135,7 @@ struct Publication {
 
     pdf: String,
     post: Option<String>,
+    materials: Option<String>,
     year: u32,
 }
 
@@ -274,9 +274,9 @@ fn build_post(path: &Path) -> io::Result<Post> {
     /* Render the post header */
     let rendered = markdown_to_html(body)?;
 
-    let relative_path = PathBuf::from(path.strip_prefix(CONTENT_DIR).expect("invalid error"))
-        .to_string_lossy()
-        .into();
+    let mut relative_path = PathBuf::from(path.strip_prefix(CONTENT_DIR).expect("invalid error"));
+    relative_path.set_extension("html");
+    let relative_path = relative_path.to_string_lossy().into();
 
     Ok(Post {
         meta: PostMetadata {
@@ -355,23 +355,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         for post in &posts {
             let html = post.template.render()?;
+            let path = PathBuf::from(&post.template.relative_path);
 
-            let relative = post.template.relative_path.trim_end_matches(".md");
-
-            let output_dir = opath.join(relative);
-
-            std::fs::create_dir_all(&output_dir)?;
-            std::fs::write(output_dir.join("index.html"), html)?;
+            std::fs::write(opath.join(path), html)?;
         }
 
         all_posts.extend(posts);
     }
 
     for post in all_posts.iter() {
-        let mut path = opath.join(&post.template.relative_path);
-        path.set_extension("html");
-
+        let path = opath.join(&post.template.relative_path);
         let html = post.template.render()?;
+
         std::fs::write(path, html)?;
     }
 

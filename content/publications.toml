@@ -13,6 +13,7 @@ Current Trusted Execution Environment (TEE) implementations often rely on propri
 """
 pdf = "https://ssrn.com/abstract=6717198"
 year = 2026
+materials = "https://github.com/HiSA-Team/shadowfax"
 
 [[publication]]
 title = "A Systematic Threat Modeling Methodology for Confidential Computing Architectures: a Case Study on RISC-V CoVE"
