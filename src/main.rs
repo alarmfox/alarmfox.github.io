@@ -1,6 +1,7 @@
 use askama::Template;
 use chrono::{DateTime, FixedOffset};
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd, html};
+use rss_gen::{RssData, RssItem, RssVersion, generate_rss};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -17,6 +18,11 @@ const STATIC_DIR: &str = "static";
 const PUBLIC_DIR: &str = "public";
 const PUBLICATION_FILE: &str = "publications.toml";
 
+/* Globals */
+const SITE_TITLE: &str = "alarmfox's site";
+const SITE_URL: &str = "https://giuseppe.capass.org";
+const SITE_DESCRIPTION: &str = "alarmfox stuff";
+
 /* Personal data */
 const USERNAME: &str = "alarmfox";
 const FULL_NAME: &str = "giuseppe capasso";
@@ -28,15 +34,17 @@ const DESCRIPTION: &str = r"
 This is my space where I write about my interests and thoughts which include (and are not limited to):
 
 - computer architectures: I am deeply interested in high-performance systems, software security, networking and all the OS/low-level stuff.
-- entertainment (books, videogames, music, film)
+- entertainment: books, videogames, music, film
 - real world stuff
+
+> **INFO** I am aware that nobody cares about this site and most of the 'automations' (translations, RSS etc) are made just for fun and not for keeping 'audience' updated ~whatever that means~.
 
 There is not a specific target for this website. Sometimes, one just needs a place to share thoughts and put ideas together.
 If you are looking for a resume/CV (either you are a recruiter or ~what are you doing with your life?~), you can get one [here](https://github.com/alarmfox/curriculum-vitae/releases/latest/download/cv-capasso-giuseppe.pdf).
 
 ## Site organization
 
-Although I use this site for everything (I don't like fragmentation), maybe it is a good idea to keep the [research](/research) stuff away from [personal thoughts](/thoughts).
+Although I use this site for everything (I don't like fragmentation), maybe it is a good idea to keep the [research/tech](/research) stuff away from [personal thoughts](/thoughts).
 
 > **NOTE** some personal thoughts are available both in Italian and English. The translation may happen automatically (not so often though).
 ";
@@ -94,7 +102,7 @@ struct Post {
 struct PostTemplate {
     title: String,
     body: String,
-    first_name: String,
+    username: String,
     relative_path: String,
     date: String,
 }
@@ -175,7 +183,7 @@ struct Index<'a> {
 #[derive(Template)]
 #[template(path = "section.html")]
 struct SectionIndexTemplate<'a> {
-    first_name: String,
+    username: String,
     section_name: String,
     posts: &'a [Post],
 }
@@ -285,7 +293,7 @@ fn build_post(path: &Path) -> io::Result<Post> {
             draft: meta.draft,
         },
         template: PostTemplate {
-            first_name: FIRST_NAME.to_string(),
+            username: USERNAME.to_string(),
             title: meta.title,
             body: rendered,
             date: meta.date.format("%B %-d, %Y").to_string(),
@@ -313,6 +321,35 @@ fn load_section(path: &Path) -> io::Result<Vec<Post>> {
     posts.sort_by(|a, b| b.meta.date.cmp(&a.meta.date));
 
     Ok(posts)
+}
+
+fn build_rss(posts: &[Post]) -> Result<String, rss_gen::RssError> {
+    const MAX_ITEMS: usize = 10;
+
+    // Construct an RSS 2.0 channel via the builder API.
+    let mut feed = RssData::new(Some(RssVersion::RSS2_0))
+        .title(SITE_TITLE)
+        .link(SITE_URL)
+        .description(SITE_DESCRIPTION);
+
+    for post in posts.iter().take(MAX_ITEMS) {
+        let link = format!(
+            "{}/{}",
+            SITE_URL.trim_end_matches('/'),
+            post.template.relative_path.trim_start_matches('/')
+        );
+
+        // Items are appended in the order they should appear.
+        feed.add_item(
+            RssItem::new()
+                .title(&post.meta.title)
+                .link(&link)
+                .guid(&link)
+                .pub_date(post.meta.date.to_rfc2822()),
+        );
+    }
+
+    generate_rss(&feed)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -344,7 +381,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::fs::create_dir_all(&section_output_path)?;
 
         let template = SectionIndexTemplate {
-            first_name: FIRST_NAME.to_string(),
+            username: USERNAME.to_string(),
             section_name: section_name.to_string(),
             posts: &posts,
         };
@@ -401,6 +438,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     publications.sort_by(|a, b| b.year.cmp(&a.year));
 
+    /* Build RSS feed file */
+    let rss = build_rss(&all_posts)?;
+    std::fs::write(opath.join("rss.xml"), rss)?;
+
     /* Finally build index.html */
     let mut description = String::new();
     let mut options = Options::empty();
@@ -421,8 +462,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let html = index.render()?;
-    let mut file = std::fs::File::create(opath.join("index.html"))?;
-    file.write_all(html.as_bytes())?;
+    std::fs::write(opath.join("index.html"), html)?;
 
     Ok(())
 }
