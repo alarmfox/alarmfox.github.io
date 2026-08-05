@@ -5,7 +5,7 @@ use rss_gen::{RssData, RssItem, RssVersion, generate_rss};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
-    io::{self, Read, Write},
+    io::{self, Read},
     path::{Path, PathBuf},
     sync::OnceLock,
 };
@@ -33,7 +33,7 @@ const CODEBERG: &str = "https://codeberg.org/alarmfox";
 const DESCRIPTION: &str = r"
 This is my space where I write about my interests and thoughts which include (and are not limited to):
 
-- computer architectures: I am deeply interested in high-performance systems, software security, networking and all the OS/low-level stuff.
+- computer architectures: I am deeply interested in high-performance systems, software security, networking and all the OS/low-level stuff
 - entertainment: books, videogames, music, film
 - real world stuff
 
@@ -48,6 +48,8 @@ Although I use this site for everything (I don't like fragmentation), maybe it i
 
 > **NOTE** some personal thoughts are available both in Italian and English. The translation may happen automatically (not so often though).
 ";
+const DEVPUBKEY: &str =
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGRcJ4qG0Kcsb30DUAFYAB3CYNt5PXgIyGMOxzusWjfM";
 
 static SYNTAX_SET: OnceLock<SyntaxSet> = OnceLock::new();
 static THEME_SET: OnceLock<ThemeSet> = OnceLock::new();
@@ -88,6 +90,9 @@ fn setup_public_directory(path: &Path) -> io::Result<()> {
     /* Populate static directory */
     copy_dir_all(Path::new(STATIC_DIR), path.join("static"))?;
 
+    /* Write ssh public key */
+    std::fs::write(path.join("devel.pub"), DEVPUBKEY)?;
+
     Ok(())
 }
 
@@ -105,6 +110,10 @@ struct PostTemplate {
     username: String,
     relative_path: String,
     date: String,
+
+    github: String,
+    codeberg: String,
+    email: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -186,6 +195,10 @@ struct SectionIndexTemplate<'a> {
     username: String,
     section_name: String,
     posts: &'a [Post],
+
+    github: String,
+    codeberg: String,
+    email: String,
 }
 
 fn split_front_matter(contents: &str) -> Option<(&str, &str)> {
@@ -298,6 +311,10 @@ fn build_post(path: &Path) -> io::Result<Post> {
             body: rendered,
             date: meta.date.format("%B %-d, %Y").to_string(),
             relative_path,
+
+            email: EMAILS[0].to_string(),
+            github: GITHUB.to_string(),
+            codeberg: CODEBERG.to_string(),
         },
     })
 }
@@ -384,6 +401,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             username: USERNAME.to_string(),
             section_name: section_name.to_string(),
             posts: &posts,
+
+            email: EMAILS[0].to_string(),
+            github: GITHUB.to_string(),
+            codeberg: CODEBERG.to_string(),
         };
 
         let html = template.render()?;

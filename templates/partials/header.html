@@ -1,6 +1,16 @@
 <header>
-  {{ username }} -
-  <a href="/">home</a>
-  <a href="/thoughts">thoughts</a>
-  <a href="/research">research</a>
+  <div class="header-first">
+    {{ username }} -
+    <a href="/">home</a>
+    <a href="/thoughts">thoughts</a>
+    <a href="/research">research</a>
+  </div>
+
+  <div class="header-last">
+    <a href={{ github }}>github</a>
+    <a href={{ codeberg }}>codeberg</a>
+    <a href=mailto:{{ email }}>email</a>
+    <a href="/rss.xml">rss</a>
+    <a href="/devel.pub">signing key</a>
+  </div>
 </header>

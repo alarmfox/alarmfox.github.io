@@ -17,12 +17,27 @@ body {
     line-height: 1.6;
 }
 
-header,
 main,
 footer {
+    margin: .75em;
+}
+
+header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
     margin: .5em;
-    padding-left: 2em;
-    padding-right: 2em;
+}
+
+.header-first,
+.header-last {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.header-last {
+    margin-left: auto;
 }
 
 main {
