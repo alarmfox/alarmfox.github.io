@@ -11,22 +11,22 @@ use std::{
 };
 use syntect::{highlighting::ThemeSet, html::highlighted_html_for_string, parsing::SyntaxSet};
 
+/* Build Flags */
 const SKIP_DRAFT: bool = true;
 
+/* Directories and path */
 const CONTENT_DIR: &str = "content";
 const STATIC_DIR: &str = "static";
 const PUBLIC_DIR: &str = "public";
 const PUBLICATION_FILE: &str = "publications.toml";
 
 /* Globals */
-const SITE_TITLE: &str = "alarmfox's site";
 const SITE_URL: &str = "https://giuseppe.capass.org";
 const SITE_DESCRIPTION: &str = "alarmfox stuff";
 
 /* Personal data */
 const USERNAME: &str = "alarmfox";
 const FULL_NAME: &str = "giuseppe capasso";
-const FIRST_NAME: &str = "giuseppe";
 const EMAILS: [&str; 1] = ["capassog97@gmail.com"];
 const GITHUB: &str = "https://github.com/alarmfox";
 const CODEBERG: &str = "https://codeberg.org/alarmfox";
@@ -178,7 +178,6 @@ impl Publication {
 #[template(path = "index.html")]
 struct Index<'a> {
     full_name: &'a str,
-    first_name: &'a str,
     username: &'a str,
     description: &'a str,
     email: &'a str,
@@ -345,7 +344,7 @@ fn build_rss(posts: &[Post]) -> Result<String, rss_gen::RssError> {
 
     // Construct an RSS 2.0 channel via the builder API.
     let mut feed = RssData::new(Some(RssVersion::RSS2_0))
-        .title(SITE_TITLE)
+        .title(FULL_NAME)
         .link(SITE_URL)
         .description(SITE_DESCRIPTION);
 
@@ -362,6 +361,7 @@ fn build_rss(posts: &[Post]) -> Result<String, rss_gen::RssError> {
                 .title(&post.meta.title)
                 .link(&link)
                 .guid(&link)
+                .description(&post.template.body)
                 .pub_date(post.meta.date.to_rfc2822()),
         );
     }
@@ -471,7 +471,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     pulldown_cmark::html::push_html(&mut description, parser);
 
     let index = Index {
-        first_name: FIRST_NAME,
         full_name: FULL_NAME,
         username: USERNAME,
         description: &description,
