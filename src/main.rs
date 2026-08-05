@@ -33,11 +33,11 @@ const CODEBERG: &str = "https://codeberg.org/alarmfox";
 const DESCRIPTION: &str = r"
 This is my space where I write about my interests and thoughts which include (and are not limited to):
 
-- computer architectures: I am deeply interested in high-performance systems, software security, networking and all the OS/low-level stuff
+- computer architectures: high-performance systems, software security, networking and all the OS/low-level stuff
 - entertainment: books, videogames, music, film
 - real world stuff
 
-> **INFO** I am aware that nobody cares about this site and most of the 'automations' (translations, RSS etc) are made just for fun and not for keeping 'audience' updated ~whatever that means~.
+> **INFO** I am aware that nobody cares about this site and most of the 'automations' (translations, RSS etc) are made just for fun.
 
 There is not a specific target for this website. Sometimes, one just needs a place to share thoughts and put ideas together.
 If you are looking for a resume/CV (either you are a recruiter or ~what are you doing with your life?~), you can get one [here](https://github.com/alarmfox/curriculum-vitae/releases/latest/download/cv-capasso-giuseppe.pdf).
@@ -82,7 +82,7 @@ fn setup_public_directory(path: &Path) -> io::Result<()> {
         }
     }
 
-    const DIRS: [&str; 3] = ["static", "thoughts", "research"];
+    const DIRS: [&str; 4] = ["static", "projects", "thoughts", "research"];
     for dir in DIRS {
         std::fs::create_dir_all(path.join(dir))?;
     }
@@ -382,7 +382,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     setup_public_directory(opath)?;
 
-    let section_names = ["research", "thoughts"];
+    let section_names = ["projects", "research", "thoughts"];
     let mut all_posts = Vec::new();
 
     for section_name in section_names {
