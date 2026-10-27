@@ -136,7 +136,10 @@ impl PostSummary {
         if self.title.chars().count() <= MAX {
             self.title.clone()
         } else {
-            format!("{}…", self.title.chars().take(MAX - 1).collect::<String>())
+            format!(
+                "{}...",
+                self.title.chars().take(MAX - 1).collect::<String>()
+            )
         }
     }
 }
