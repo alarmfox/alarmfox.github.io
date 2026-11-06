@@ -29,3 +29,4 @@ Confidential Computing has emerged as a critical response to heightened security
 """
 pdf = "http://dx.doi.org/10.2139/ssrn.6767055"
 year = 2026
+materials = "https://github.com/NS-unina/threat-model-riscv-cove"
