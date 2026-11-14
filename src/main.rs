@@ -211,6 +211,25 @@ fn split_front_matter(contents: &str) -> Option<(&str, &str)> {
     Some((front, body))
 }
 
+/// Renders an ASCII diagram (a fenced `bob` block) to an inline SVG.
+///
+/// Colours match the site's black background; the backdrop is omitted so the
+/// diagram stays transparent.
+fn render_diagram(ascii: &str) -> String {
+    let settings = svgbob::Settings {
+        font_family: "monospace".into(),
+        fill_color: "white".into(),
+        stroke_color: "white".into(),
+        stroke_width: 1.5,
+        background: "none".into(),
+        include_backdrop: false,
+        ..svgbob::Settings::default()
+    };
+    let svg = svgbob::to_svg_with_settings(ascii, &settings);
+
+    format!("<figure class=\"diagram\">{svg}</figure>\n")
+}
+
 fn markdown_to_html(markdown: &str) -> io::Result<String> {
     let syntax_set = SYNTAX_SET.get_or_init(SyntaxSet::load_defaults_newlines);
 
@@ -253,6 +272,12 @@ fn markdown_to_html(markdown: &str) -> io::Result<String> {
 
                         _ => {}
                     }
+                }
+
+                if language == "bob" {
+                    let svg = render_diagram(&code);
+                    events.push(Event::Html(CowStr::Boxed(svg.into_boxed_str())));
+                    continue;
                 }
 
                 let syntax = if language.is_empty() {
