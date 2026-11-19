@@ -2,8 +2,8 @@
 date = '2026-11-10T11:13:46+02:00'
 author = "alarmfox"
 draft = false
-title = '[Part 0] (A)KP: (Advanced) Kernel Programming'
-keywords = ["advanced", "kernel", "programming", "os"]
+title = '[Part 0] (A)KP: (Advanced) Kernel Programming - Architectural Foundations'
+keywords = ["advanced", "kernel", "programming", "os", "computer", "architecture"]
 +++
 
 # Introduction
@@ -12,6 +12,8 @@ As I got into the PhD program at ReTis Group @Scuola Superiore Sant'Anna in Pisa
 Here, I will discuss things on exercises just for fun. This will be a series of posts just to not make this one too long (~I may be put everything together if I realize it is compact enough~). It will be an attempt to put all my knowledge of operating systems and computer architecture out.
 
 As I chose AKP and AOS, I found appropriate to integrate from the previous Kernel Programming (KP) course.
+
+First, we are going to setup some architectural foundations and understand how a kernel can exploit them.
 
 # Background
 
