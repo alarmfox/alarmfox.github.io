@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 askama = "0.16.0"
+clap = { version = "4.6.8", features = ["derive"] }
 chrono = {  version = "0.4.45", features = ["serde"] }
 pulldown-cmark = "0.13.4"
 rss-gen = "0.0.8"

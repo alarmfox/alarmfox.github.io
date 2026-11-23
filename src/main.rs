@@ -1,5 +1,6 @@
 use askama::Template;
 use chrono::{DateTime, FixedOffset};
+use clap::Parser as ClapParser;
 use pulldown_cmark::{CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd, html};
 use rss_gen::{RssData, RssItem, RssVersion, generate_rss};
 use serde::Deserialize;
@@ -10,9 +11,6 @@ use std::{
     sync::OnceLock,
 };
 use syntect::{highlighting::ThemeSet, html::highlighted_html_for_string, parsing::SyntaxSet};
-
-/* Build Flags */
-const SKIP_DRAFT: bool = true;
 
 /* Directories and path */
 const CONTENT_DIR: &str = "content";
@@ -397,10 +395,15 @@ fn build_rss(posts: &[Post]) -> Result<String, rss_gen::RssError> {
     generate_rss(&feed)
 }
 
+#[derive(ClapParser)]
+struct Args {
+    #[arg(long, default_value_t = false)]
+    include_draft: bool,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    if SKIP_DRAFT {
-        println!("skipping drafts");
-    }
+    let args = Args::parse();
+
     println!("content directory at {}", CONTENT_DIR);
     println!("static directory at {}", STATIC_DIR);
     println!("public directory at {}", PUBLIC_DIR);
@@ -419,7 +422,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut posts = load_section(&section_content_path)?;
 
-        if SKIP_DRAFT {
+        if !args.include_draft {
             posts.retain(|p| !p.meta.draft);
         }
 
