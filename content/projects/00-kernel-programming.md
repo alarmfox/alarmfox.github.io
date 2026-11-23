@@ -2,7 +2,7 @@
 date = '2026-11-10T11:13:46+02:00'
 author = "alarmfox"
 draft = false
-title = '[Part 0] (A)KP: (Advanced) Kernel Programming - Architectural Foundations'
+title = '[Part 00] (A)KP: (Advanced) Kernel Programming - Architectural Foundations'
 keywords = ["advanced", "kernel", "programming", "os", "computer", "architecture"]
 +++
 
@@ -13,7 +13,7 @@ Here, I will discuss things on exercises just for fun. This will be a series of 
 
 As I chose AKP and AOS, I found appropriate to integrate from the previous Kernel Programming (KP) course.
 
-First, we are going to setup some architectural foundations and understand how a kernel can exploit them.
+First, we are going to setup some architectural foundations and understand how a kernel can exploit them. Then, we focus on the core of the course exploring Linux internals.
 
 # Background
 
