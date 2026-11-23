@@ -24,7 +24,7 @@ For SRAM things, cache is small and is not organized as main memory. How does a 
 
 > Consistency? For example, do we always keep memory updated? What if different element are communicating using a variable and they just write things in their cache? They would never communicate since they are using different version of the same variable
 
-> Consistency is a thing we focus in next episode
+> Consistency is a thing we focus in the next episode
 
 Historically, there are different kind of cache architectures.
 
@@ -194,4 +194,4 @@ First, let's notice that they are in two different parts of our system. The most
 0xF00C => store.word [0x1008], a2
 ```
 
-This program has no branches, no jumps, no function call. According to our pipeline, we would just need to fetch instruction one after the other. How can we exploit this "access pattern". The keyword here is **pre-fetch**. Memory connections can bridge more than 4-byte at a time. What if we fetch 10 instructions at time? Threat A fetches the instruction at `0xF000` and the fetch unit fetches asynchnoushly the next 4 instructions.
+This program has no branches, no jumps, no function call. According to our pipeline, we would just need to fetch instruction one after the other. How can we exploit this "access pattern". The keyword here is **pre-fetch**. Memory connections can bridge more than 4-byte at a time. What if we fetch 10 instructions at time? Thread A fetches the instruction at `0xF000` and the fetch unit fetches the next 4 instructions.
