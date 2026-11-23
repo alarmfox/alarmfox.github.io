@@ -28,10 +28,11 @@ For SRAM things, cache is small and is not organized as main memory. How does a 
 
 Historically, there are different kind of cache architectures.
 
-Too much yapping, let's introduce some code. We will try to explain with `C` code how a cache works. We suppose the existence of a function:
+Too much yapping, let's introduce some code. We will try to explain with `C` code how a cache works. We suppose the existence of functions:
 
 ```c
-extern void slow_memory_access(...);
+extern void slow_memory_access_read(...);
+extern void slow_memory_access_write(...);
 ```
 
 We will suppose 64-bit addresses and the cache byte-addressable. The code can be extended to get more bytes at once.
@@ -107,8 +108,7 @@ static uint8_t dm_lookup(const struct dm_cache_entry *cache, uintptr_t address) 
     }
 
     /* Cache miss: fetch data from memory */
-    /* memcpy(entry->data, &memory[aligned], DM_CACHE_BLOCK_SIZE); */
-    slow_memory_access(entry->data, DM_CACHE_BLOCK_SIZE);
+    slow_memory_access_read(entry->data, DM_CACHE_BLOCK_SIZE);
 
     entry->valid = 1;
     entry->tag = tag;
@@ -133,13 +133,13 @@ static void dm_write_through(struct dm_cache *cache, uintptr_t address, uint8_t 
     if(address + offset >= MEMORY_SIZE) return;
 
     /* Always update memory */
-    memory[aligned + offset] = data;
+    slow_memory_access_write(data, DM_CACHE_BLOCK_SIZE);
 
     /* load on write: Load block on miss */
     if(!entry->valid || tag != entry->tag) {
         entry->valid = 1;
         entry->tag = tag;
-        slow_memory_access(entry->data, DM_CACHE_BLOCK_SIZE);
+        slow_memory_access_read(entry->data, DM_CACHE_BLOCK_SIZE);
     }
     entry->data[offset] = data;
 }
